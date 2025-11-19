@@ -1,0 +1,48 @@
+name: CI para FastAPI Backend
+
+on:
+  push:
+    branches:
+      - main
+      - development
+  pull_request:
+    branches:
+      - main
+      - development
+
+jobs:
+  tests_and_linting:
+    name: Pruebas, Linting y Verificación
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: .
+    
+    env:
+      DATABASE_URL: sqlite:///./test.db
+      SECRET_KEY: testing-key
+
+    steps:
+      - name: Checkout Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' 
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt 
+
+      - name: Ejecutar Pruebas (pytest)
+        run: |
+          pytest --cov=app --cov-report=xml
+          
+      - name: Subir Reporte de Cobertura de Pruebas (Opcional)
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: true
